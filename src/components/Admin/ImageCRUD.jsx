@@ -154,31 +154,51 @@ export default function ImageCRUD() {
         </form>
       </div>
 
-      {/* Designs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {designs.length > 0 ? (
-          designs.map((design) => (
-            <div key={design.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <img src={design.url} alt={design.title} className="w-full h-48 object-cover" />
-              <div className="p-4">
-                <h3 className="font-semibold mb-2">{design.title}</h3>
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">{design.description}</p>
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {design.tags?.map((tag, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-gray-100 text-xs rounded">{tag}</span>
-                  ))}
-                </div>
-                <p className="font-bold text-orange-600 mb-4">{design.price}</p>
-                <div className="flex gap-2">
-                  <button onClick={() => handleEdit(design)} className="flex-1 bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600">Edit</button>
-                  <button onClick={() => handleDelete(design.id)} className="flex-1 bg-red-500 text-white p-2 rounded hover:bg-red-600">Delete</button>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="col-span-full text-center text-gray-500 py-8">No designs yet. Add one above!</p>
-        )}
+      {/* Designs Table */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Style</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {designs.length > 0 ? (
+                designs.map((design) => (
+                  <tr key={design.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <img src={design.url} alt={design.title} className="w-12 h-12 object-cover rounded-md" />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{design.title}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{design.description}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{design.style || 'N/A'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                      {design.tags?.join(', ') || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-orange-600">{design.price}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      <button onClick={() => handleEdit(design)} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition-colors">Edit</button>
+                      <button onClick={() => handleDelete(design.id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors">Delete</button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                    No designs yet. Add one above!
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
