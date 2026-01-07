@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export default function BookingForm({ selectedDesign, onClose }) {
@@ -39,6 +39,20 @@ export default function BookingForm({ selectedDesign, onClose }) {
     }
 
     try {
+      // Check for existing booking on the same date (only one booking per day, regardless of time or style)
+      const existingQuery = query(
+        collection(db, 'bookings'),
+        where('date', '==', data.date)
+      );
+      const existingSnapshot = await getDocs(existingQuery);
+      
+      if (existingSnapshot.size > 0) {
+        setFormError('This date is already booked. Please choose another date.');
+        setSubmitting(false);
+        return;
+      }
+
+      // No existing booking on this date, proceed to add
       await addDoc(collection(db, 'bookings'), data);
       setSuccess(true);
       setTimeout(onClose, 2000);  // Auto-close after success
