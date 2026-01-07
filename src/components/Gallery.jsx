@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import BookingForm from './BookingForm'; // Import the BookingForm component
 
 export default function Gallery() {
-  const [designs, setDesigns] = useState([]);  // Renamed from images for clarity
+  const [designs, setDesigns] = useState([]); // Renamed from images for clarity
   const [filterStyle, setFilterStyle] = useState('');
   const [sortBy, setSortBy] = useState('Newest Arrivals');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);  // For debugging
-  const [showFilters, setShowFilters] = useState(false);  // Mobile toggle for sidebar
+  const [error, setError] = useState(null); // For debugging
+  const [showFilters, setShowFilters] = useState(false); // Mobile toggle for sidebar
+
+  // States for booking modal
+  const [selectedDesign, setSelectedDesign] = useState(null);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+
+  // New states for image full-view modal
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     fetchDesigns();
@@ -18,38 +27,38 @@ export default function Gallery() {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching designs with filter:', filterStyle, 'sort:', sortBy);  // Debug
+      console.log('Fetching designs with filter:', filterStyle, 'sort:', sortBy); // Debug
       let q = query(collection(db, 'images'), orderBy('createdAt', 'desc'));
-      
+     
       // Apply style filter (string equality) - single block
       if (filterStyle) {
-        q = query(q, where('style', '==', filterStyle));  // Assumes 'style' is string field
-        console.log('Applied style filter:', filterStyle);  // Debug
+        q = query(q, where('style', '==', filterStyle)); // Assumes 'style' is string field
+        console.log('Applied style filter:', filterStyle); // Debug
       }
-      
+     
       // Optional: Chain tags filter if needed (uncomment to enable both)
       // if (filterStyle) {
       //   q = query(q, where('tags', 'array-contains', filterStyle));
       // }
 
       const querySnapshot = await getDocs(q);
-      let fetchedDesigns = querySnapshot.docs.map((doc) => ({ 
-        id: doc.id, 
-        ...doc.data() 
+      let fetchedDesigns = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
       }));
-      
-      console.log('Raw fetched designs:', fetchedDesigns.length);  // Debug count
-      
+     
+      console.log('Raw fetched designs:', fetchedDesigns.length); // Debug count
+     
       // Client-side sorting for price
       if (sortBy === 'Price Low to High') {
         fetchedDesigns.sort((a, b) => parseFloat(a.price?.replace('$', '') || 0) - parseFloat(b.price?.replace('$', '') || 0));
       } else if (sortBy === 'Price High to Low') {
         fetchedDesigns.sort((a, b) => parseFloat(b.price?.replace('$', '') || 0) - parseFloat(a.price?.replace('$', '') || 0));
       }
-      
+     
       setDesigns(fetchedDesigns);
     } catch (err) {
-      console.error('Fetch error:', err);  // Full log
+      console.error('Fetch error:', err); // Full log
       if (err.code === 'permission-denied') {
         setError('Permissions denied - check Firestore rules and index status.');
       } else if (err.code === 'failed-precondition') {
@@ -60,6 +69,28 @@ export default function Gallery() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Open booking modal for a design
+  const openBookingModal = (design) => {
+    setSelectedDesign(design);
+    setBookingModalOpen(true);
+  };
+
+  const closeBookingModal = () => {
+    setBookingModalOpen(false);
+    setSelectedDesign(null);
+  };
+
+  // New: Open full-view image modal
+  const openImageModal = (imageUrl) => {
+    setSelectedImage(imageUrl);
+    setImageModalOpen(true);
+  };
+
+  const closeImageModal = () => {
+    setImageModalOpen(false);
+    setSelectedImage(null);
   };
 
   const toggleFilters = () => setShowFilters(!showFilters);
@@ -96,7 +127,7 @@ export default function Gallery() {
         <div className="absolute bottom-20 right-10 w-24 h-24 border-2 border-orange-400 rounded-full animate-bounce delay-1000"></div>
         <div className="absolute top-1/2 left-1/4 w-16 h-16 border-2 border-amber-200 rounded-full animate-ping"></div>
       </div>
-      
+     
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header with subtle animation */}
@@ -120,7 +151,7 @@ export default function Gallery() {
             {/* Left Sidebar: Filters with modern glassmorphism - Hidden on mobile unless toggled */}
             <div className={`w-full md:w-64 flex-shrink-0 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/20 md:block ${showFilters ? 'block' : 'hidden'}`}>
               <h2 className="text-xl font-semibold mb-6 text-gray-800 animate-fade-in">Filter Designs</h2>
-              
+             
               {/* Style Filter */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Style</label>
@@ -156,13 +187,16 @@ export default function Gallery() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {designs.length > 0 ? (
                   designs.map((design, index) => (
-                    <div 
-                      key={design.id} 
+                    <div
+                      key={design.id}
                       className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 ease-out transform hover:-translate-y-2 hover:rotate-1 cursor-pointer animate-staggered-fade-in"
-                      style={{ animationDelay: `${index * 100}ms` }}  // Staggered load
+                      style={{ animationDelay: `${index * 100}ms` }} // Staggered load
                     >
-                      {/* Image with zoom hover */}
-                      <div className="relative overflow-hidden">
+                      {/* Image with zoom hover - Now clickable for full view */}
+                      <div 
+                        className="relative overflow-hidden cursor-zoom-in"
+                        onClick={() => openImageModal(design.url)}
+                      >
                         <img
                           src={design.url}
                           alt={design.title}
@@ -195,26 +229,29 @@ export default function Gallery() {
                           {design.title}
                         </h3>
                         <p className="text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2 leading-relaxed">{design.description}</p>
-                        
+                       
                         {/* Tags with hover pop - Wrap on mobile */}
                         <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
                           {design.tags.map((tag, idx) => (
-                            <span 
-                              key={idx} 
+                            <span
+                              key={idx}
                               className="px-2 py-1 sm:px-3 sm:py-1 bg-gradient-to-r from-amber-100 to-orange-100 text-xs text-amber-800 rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer"
                             >
                               {tag}
                             </span>
                           ))}
                         </div>
-                        
+                       
                         {/* Price with shine effect */}
                         <p className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse-slow">
                           {design.price}
                         </p>
-                        
-                        {/* Subtle call-to-action - Full on mobile */}
-                        <button className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 sm:py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                       
+                        {/* Call-to-action - Triggers booking modal */}
+                        <button
+                          onClick={() => openBookingModal(design)}
+                          className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 sm:py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        >
                           Book Now
                         </button>
                       </div>
@@ -235,6 +272,38 @@ export default function Gallery() {
           </div>
         </div>
       </div>
+
+      {/* Booking Modal - Now renders BookingForm */}
+      {bookingModalOpen && (
+        <BookingForm
+          selectedDesign={selectedDesign}
+          onClose={closeBookingModal}
+        />
+      )}
+
+      {/* New: Full-View Image Modal */}
+      {imageModalOpen && (
+        <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close button */}
+            <button
+              onClick={closeImageModal}
+              className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all duration-300 transform hover:scale-110"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            {/* Full image */}
+            <img
+              src={selectedImage}
+              alt="Full view"
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
