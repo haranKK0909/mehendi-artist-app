@@ -112,21 +112,29 @@ export default function BookingForm({ selectedDesign, onClose }) {
             rows={3}
             className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all resize-none"
           />
-          <input
-            type="time"
-            name="availableTime"
-            placeholder="Available Time *"
-            required
-            className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-          />
-          <input
-            type="date"
-            name="date"
-            min={today}
-            placeholder="Preferred Date *"
-            required
-            className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-          />
+          {/* Highlighted Available Time with Label and Placeholder */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Available Time *</label>
+            <input
+              type="time"
+              name="availableTime"
+              placeholder="Available Time *"
+              required
+              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-amber-50 hover:bg-amber-100"
+            />
+          </div>
+          {/* Highlighted Preferred Date with Label and Placeholder */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Date *</label>
+            <input
+              type="date"
+              name="date"
+              min={today}
+              placeholder="Preferred Date *"
+              required
+              className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all bg-amber-50 hover:bg-amber-100"
+            />
+          </div>
           {formError && <p className="text-red-500 text-sm text-center">{formError}</p>}
           <div className="flex gap-3 pt-4">
             <button
