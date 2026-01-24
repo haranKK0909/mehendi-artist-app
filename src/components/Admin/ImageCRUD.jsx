@@ -69,8 +69,11 @@ export default function ImageCRUD() {
       data.url = url;
       data.createdAt = serverTimestamp();
 
-      // Debug log for style
-      console.log('Saving style:', data.style);
+      // Standardize price as string with ₹ prefix (for consistency with Gallery/Admin display)
+      data.price = `₹${data.price}`;
+
+      // Debug log for serviceType (updated from style)
+      console.log('Saving serviceType:', data.serviceType);
 
       if (editingId) {
         await updateDoc(doc(db, 'images', editingId), data);
@@ -81,7 +84,8 @@ export default function ImageCRUD() {
         alert('Design added!');
       }
 
-      reset();
+      // Explicit reset with serviceType (ensures clean state)
+      reset({ serviceType: '' });
       setFile(null);
       fetchDesigns();
     } catch (err) {
@@ -96,9 +100,9 @@ export default function ImageCRUD() {
     setEditingId(design.id);
     setValue('title', design.title || '');
     setValue('description', design.description || '');
-    setValue('price', design.price ? design.price.replace('$', '') : '');
+    setValue('price', design.price ? design.price.replace('₹', '') : ''); // Updated to strip ₹ (not $)
     setValue('tagsInput', design.tags ? design.tags.join(', ') : '');
-    setValue('style', design.style || '');  // Set style for edit
+    setValue('serviceType', design.serviceType || '');  // Updated to serviceType
     setFile(null);
   };
 
@@ -136,19 +140,32 @@ export default function ImageCRUD() {
           <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files[0])} className="p-2 border rounded-md" />
           <input {...register('title', { required: 'Title required' })} placeholder="Title (e.g., Festive Wristband)" className="p-2 border rounded-md" />
           {errors.title && <p className="text-red-500 text-sm md:col-span-2">{errors.title.message}</p>}
-          <select {...register('style', { required: 'Style required' })} className="p-2 border rounded-md">
-            <option value="">Select Style</option>
-            <option value="Traditional">Traditional</option>
-            <option value="Modern">Modern</option>
-            <option value="Minimalist">Minimalist</option>
+          <label htmlFor="service-type-select" className="sr-only">Select Service Type</label> {/* Hidden label for accessibility */}
+          <select 
+            id="service-type-select" // Added id for label
+            {...register('serviceType', { required: 'Service Type required' })} 
+            className="p-2 border rounded-md"
+          > {/* Updated to serviceType */}
+            <option value="">Select Service</option> {/* Updated label */}
+            <option value="Bridal Mehendi">Bridal Mehendi</option>
+            <option value="Festive Mehendi">Festive Mehendi</option>
+            <option value="Arabic Style">Arabic Style</option>
+            <option value="Traditional Indian">Traditional Indian</option>
+            <option value="Kids Mehendi">Kids Mehendi</option>
+            <option value="Custom Designs">Custom Designs</option>
           </select>
-          {errors.style && <p className="text-red-500 text-sm md:col-span-2">{errors.style.message}</p>}
+          {errors.serviceType && <p className="text-red-500 text-sm md:col-span-2">{errors.serviceType.message}</p>} {/* Updated error key */}
           <textarea {...register('description', { required: 'Description required' })} placeholder="Description" className="p-2 border rounded-md md:col-span-2" rows={3} />
           {errors.description && <p className="text-red-500 text-sm md:col-span-2">{errors.description.message}</p>}
           <input {...register('price', { required: 'Price required', min: { value: 0, message: 'Price must be positive' } })} type="number" placeholder="Price (e.g., 85)" className="p-2 border rounded-md" />
           {errors.price && <p className="text-red-500 text-sm md:col-span-2">{errors.price.message}</p>}
           <input {...register('tagsInput')} placeholder="Tags (comma-separated, e.g., Festival, Traditional)" className="p-2 border rounded-md md:col-span-2" />
-          <button type="submit" disabled={uploading} className="md:col-span-2 bg-orange-500 text-white p-3 rounded-md hover:bg-orange-600 disabled:opacity-50">
+          <button 
+            type="submit" 
+            disabled={uploading} 
+            className="md:col-span-2 bg-orange-500 text-white p-3 rounded-md hover:bg-orange-600 disabled:opacity-50"
+            aria-label={uploading ? 'Saving design' : (editingId ? 'Update design' : 'Add design')} // Added for accessibility
+          >
             {uploading ? 'Saving...' : (editingId ? 'Update Design' : 'Add Design')}
           </button>
         </form>
@@ -163,7 +180,7 @@ export default function ImageCRUD() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Style</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th> {/* Updated header */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -178,14 +195,26 @@ export default function ImageCRUD() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{design.title}</td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{design.description}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{design.style || 'N/A'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{design.serviceType || 'N/A'}</td> {/* Updated to serviceType */}
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                      {design.tags?.join(', ') || 'N/A'}
+                      {design.tags?.join(', ') || 'N/A'} {/* Optional chaining for safety */}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-orange-600">{design.price}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      <button onClick={() => handleEdit(design)} className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition-colors">Edit</button>
-                      <button onClick={() => handleDelete(design.id)} className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors">Delete</button>
+                      <button 
+                        onClick={() => handleEdit(design)} 
+                        className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition-colors"
+                        aria-label="Edit this design" // Added for accessibility
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(design.id)} 
+                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"
+                        aria-label="Delete this design" // Added for accessibility
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useSearchParams } from 'react-router-dom'; // NEW: Add this import
 import BookingForm from './BookingForm'; // Import the BookingForm component
 
 export default function Gallery() {
   const [designs, setDesigns] = useState([]); // Renamed from images for clarity
-  const [filterStyle, setFilterStyle] = useState('');
+  const [filterService, setFilterService] = useState(''); // Renamed from filterStyle for clarity
   const [sortBy, setSortBy] = useState('Newest Arrivals');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null); // For debugging
@@ -19,26 +20,38 @@ export default function Gallery() {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
+  // NEW: Add this hook (reads URL params for pre-filtering)
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // NEW: Initial load from URL param (only if filter not yet set)
+  useEffect(() => {
+    const serviceFromUrl = searchParams.get('service');
+    if (serviceFromUrl && filterService === '') {
+      setFilterService(serviceFromUrl);
+    }
+  }, [searchParams]);
+
+  // Main fetch effect
   useEffect(() => {
     fetchDesigns();
-  }, [filterStyle, sortBy]);
+  }, [filterService, sortBy]);
 
   const fetchDesigns = async () => {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching designs with filter:', filterStyle, 'sort:', sortBy); // Debug
+      console.log('Fetching designs with filter:', filterService, 'sort:', sortBy); // Debug
       let q = query(collection(db, 'images'), orderBy('createdAt', 'desc'));
-     
-      // Apply style filter (string equality) - single block
-      if (filterStyle) {
-        q = query(q, where('style', '==', filterStyle)); // Assumes 'style' is string field
-        console.log('Applied style filter:', filterStyle); // Debug
+
+      // Apply service filter (string equality) - single block
+      if (filterService) {
+        q = query(q, where('serviceType', '==', filterService)); // Updated field to 'serviceType'
+        console.log('Applied service filter:', filterService); // Debug
       }
-     
+
       // Optional: Chain tags filter if needed (uncomment to enable both)
-      // if (filterStyle) {
-      //   q = query(q, where('tags', 'array-contains', filterStyle));
+      // if (filterService) {
+      //   q = query(q, where('tags', 'array-contains', filterService));
       // }
 
       const querySnapshot = await getDocs(q);
@@ -46,16 +59,17 @@ export default function Gallery() {
         id: doc.id,
         ...doc.data()
       }));
-     
+
       console.log('Raw fetched designs:', fetchedDesigns.length); // Debug count
-     
-      // Client-side sorting for price
+
+      // Client-side sorting for price (improved to handle numbers/strings robustly)
+      const parsePrice = (p) => typeof p === 'number' ? p : parseFloat((p || '').replace(/[^\d.]/g, '') || 0);
       if (sortBy === 'Price Low to High') {
-        fetchedDesigns.sort((a, b) => parseFloat(a.price?.replace(/[^\d.]/g, '') || 0) - parseFloat(b.price?.replace(/[^\d.]/g, '') || 0));
+        fetchedDesigns.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
       } else if (sortBy === 'Price High to Low') {
-        fetchedDesigns.sort((a, b) => parseFloat(b.price?.replace(/[^\d.]/g, '') || 0) - parseFloat(a.price?.replace(/[^\d.]/g, '') || 0));
+        fetchedDesigns.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
       }
-     
+
       setDesigns(fetchedDesigns);
     } catch (err) {
       console.error('Fetch error:', err); // Full log
@@ -68,6 +82,17 @@ export default function Gallery() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // NEW: Handle filter change with URL update
+  const handleFilterChange = (e) => {
+    const value = e.target.value;
+    setFilterService(value);
+    if (value) {
+      setSearchParams({ service: value });
+    } else {
+      setSearchParams({});
     }
   };
 
@@ -127,7 +152,7 @@ export default function Gallery() {
         <div className="absolute bottom-20 right-10 w-24 h-24 border-2 border-orange-400 rounded-full animate-bounce delay-1000"></div>
         <div className="absolute top-1/2 left-1/4 w-16 h-16 border-2 border-amber-200 rounded-full animate-ping"></div>
       </div>
-     
+
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header with subtle animation */}
@@ -148,32 +173,50 @@ export default function Gallery() {
 
           {/* Main Layout: Sidebar + Grid - Responsive Stack */}
           <div className={`flex gap-8 ${showFilters ? 'md:flex-row flex-col' : 'md:flex-row flex-col'}`}>
-            {/* Left Sidebar: Filters with modern glassmorphism - Hidden on mobile unless toggled */}
-            <div className={`w-full md:w-64 flex-shrink-0 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl p-6 border border-white/20 md:block ${showFilters ? 'block' : 'hidden'}`}>
-              <h2 className="text-xl font-semibold mb-6 text-gray-800 animate-fade-in">Filter Designs</h2>
-             
-              {/* Style Filter */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Style</label>
+            {/* Left Sidebar: Filters with Home.jsx-inspired styling */}
+            <div className={`w-full md:w-64 flex-shrink-0 bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl shadow-xl p-6 border border-amber-200 md:block ${showFilters ? 'block' : 'hidden'} animate-staggered-fade-in`} style={{ animationDelay: '0ms' }}>
+              <h2 className="text-xl font-bold text-gray-900 mb-6 text-center animate-fade-in">Filter Designs</h2>
+
+              {/* Service Filter - Card-like styling (Updated options to match Home.jsx services) */}
+              <div className="mb-6 bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 group">
+                <div className="flex items-center mb-3 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.414a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                  </div>
+                  <label htmlFor="service-filter" className="block text-sm font-medium text-gray-700">Select Service</label> {/* Added htmlFor for accessibility */}
+                </div>
                 <select
-                  value={filterStyle}
-                  onChange={(e) => setFilterStyle(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:shadow-md"
+                  id="service-filter" // Added id for label association
+                  value={filterService} // Updated value
+                  onChange={handleFilterChange} // Updated to use handler
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:shadow-md bg-white"
                 >
-                  <option value="">All Styles</option>
-                  <option value="Traditional">Traditional</option>
-                  <option value="Modern">Modern</option>
-                  <option value="Minimalist">Minimalist</option>
+                  <option value="">All Services</option>
+                  <option value="Bridal Mehendi">Bridal Mehendi</option>
+                  <option value="Festive Mehendi">Festive Mehendi</option>
+                  <option value="Arabic Style">Arabic Style</option>
+                  <option value="Traditional Indian">Traditional Indian</option>
+                  <option value="Kids Mehendi">Kids Mehendi</option>
+                  <option value="Custom Designs">Custom Designs</option>
                 </select>
               </div>
 
-              {/* Sort By */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+              {/* Sort By - Card-like styling */}
+              <div className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 group">
+                <div className="flex items-center mb-3 group-hover:scale-105 transition-transform duration-300">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                  </div>
+                  <label className="block text-sm font-medium text-gray-700">Sort By</label>
+                </div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:shadow-md"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:shadow-md bg-white"
                 >
                   <option value="Newest Arrivals">Newest Arrivals</option>
                   <option value="Price Low to High">Price Low to High</option>
@@ -193,7 +236,7 @@ export default function Gallery() {
                       style={{ animationDelay: `${index * 100}ms` }} // Staggered load
                     >
                       {/* Image with zoom hover - Now clickable for full view */}
-                      <div 
+                      <div
                         className="relative overflow-hidden cursor-zoom-in"
                         onClick={() => openImageModal(design.url)}
                       >
@@ -210,7 +253,7 @@ export default function Gallery() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                           </button>
-                          
+
                         </div>
                       </div>
 
@@ -220,24 +263,24 @@ export default function Gallery() {
                           {design.title}
                         </h3>
                         <p className="text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2 leading-relaxed">{design.description}</p>
-                       
-                        {/* Tags with hover pop - Wrap on mobile */}
+
+                        {/* Tags with hover pop - Wrap on mobile (added optional chaining) */}
                         <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
-                          {design.tags.map((tag, idx) => (
+                          {design.tags?.map((tag, idx) => (  // Optional chaining to prevent crash if tags undefined
                             <span
                               key={idx}
                               className="px-2 py-1 sm:px-3 sm:py-1 bg-gradient-to-r from-amber-100 to-orange-100 text-xs text-amber-800 rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer"
                             >
                               {tag}
                             </span>
-                          ))}
+                          )) || []}
                         </div>
-                       
+
                         {/* Price with shine effect - Updated with rupees symbol */}
                         <p className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse-slow">
                           ₹{design.price}
                         </p>
-                       
+
                         {/* Call-to-action - Triggers booking modal */}
                         <button
                           onClick={() => openBookingModal(design)}
@@ -285,7 +328,7 @@ export default function Gallery() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            
+
             {/* Full image */}
             <img
               src={selectedImage}
