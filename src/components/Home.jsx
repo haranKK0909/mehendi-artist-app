@@ -52,7 +52,7 @@ export default function Home() {
             Our Services
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore our range of Mehendi services tailored for every occasion. From intricate bridal designs to playful festive patterns, we create beauty that lasts.
+            Explore our range of Mehendi services tailored for every occasion. From intricate bridal designs to playful festivals patterns, we create beauty that lasts.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
@@ -83,7 +83,7 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2h12a2 2 0 012 2v2M5 11h14" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">Festive Mehendi</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">Festival Mehendi</h3>
               <p className="text-gray-600 text-sm mb-4 text-center leading-relaxed">Vibrant patterns for festivals and parties. Quick application with bold motifs to match your celebratory vibe.</p>
               <Link
                 to="/gallery?service=Festive Mehendi"  // Updated: Passes service as query param

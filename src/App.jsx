@@ -5,7 +5,9 @@ import { auth } from './firebase';
 import Home from './components/Home';
 import Gallery from './components/Gallery';
 import Login from './components/Admin/Login';
-import AdminDashboard from './components/Admin/AdminDashboard';  // Updated to single tab
+import AdminDashboard from './components/Admin/AdminDashboard';
+import Footer from './components/Footer';
+import Contact from './components/Contact'; // ← Make sure this import exists
 
 function App() {
   const [user, setUser] = useState(null);
@@ -14,18 +16,18 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-    return unsubscribe;
+    return () => unsubscribe(); // cleanup
   }, []);
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-100">
+      <div className="min-h-screen flex flex-col bg-gray-100">
+        {/* Navbar */}
         <nav className="bg-gradient-to-r from-amber-800 via-orange-800 to-red-800 p-4 text-white shadow-xl relative overflow-hidden">
-          {/* Subtle animated henna-inspired underline glow */}
           <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           
           <ul className="flex space-x-6 justify-between items-center max-w-6xl mx-auto relative z-10">
-            <li className="flex space-x-6 transform transition-all duration-300 ease-out hover:scale-105">
+            <li className="flex space-x-8">
               <Link 
                 to="/" 
                 className="relative hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full"
@@ -38,13 +40,20 @@ function App() {
               >
                 Gallery
               </Link>
+              <Link 
+                to="/contact"
+                className="relative hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full"
+              >
+                Contact Us
+              </Link>
             </li>
-            <li className="ml-auto flex items-center space-x-4 transform transition-all duration-300 ease-out hover:scale-105">
+
+            <li className="ml-auto flex items-center space-x-6">
               {user ? (
                 <>
                   <Link 
                     to="/admin/dashboard" 
-                    className="relative mr-4 hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full"
+                    className="relative hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full"
                   >
                     Admin Dashboard
                   </Link>
@@ -66,13 +75,35 @@ function App() {
             </li>
           </ul>
         </nav>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/admin/login" element={!user ? <Login /> : <Navigate to="/admin/dashboard" />} />
-          <Route path="/admin/dashboard" element={user ? <AdminDashboard /> : <Navigate to="/admin/login" />} />
-          <Route path="*" element={<div className="p-8 text-center">Page Not Found</div>} />
-        </Routes>
+
+        {/* Main content – grows to fill space */}
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/contact" element={<Contact />} />  {/* ← Added Contact route */}
+            
+            {/* Protect admin routes */}
+            <Route 
+              path="/admin/login" 
+              element={!user ? <Login /> : <Navigate to="/admin/dashboard" replace />} 
+            />
+            <Route 
+              path="/admin/dashboard" 
+              element={user ? <AdminDashboard /> : <Navigate to="/admin/login" replace />} 
+            />
+
+            {/* 404 */}
+            <Route path="*" element={
+              <div className="p-12 text-center text-2xl font-medium text-gray-600">
+                404 – Page Not Found
+              </div>
+            } />
+          </Routes>
+        </main>
+
+        {/* Footer appears on every page */}
+        <Footer />
       </div>
     </Router>
   );
