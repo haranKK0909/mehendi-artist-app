@@ -6,8 +6,7 @@ import Home from './components/Home';
 import Gallery from './components/Gallery';
 import Login from './components/Admin/Login';
 import AdminDashboard from './components/Admin/AdminDashboard';
-import Footer from './components/Footer';
-import Contact from './components/Contact'; // ← Make sure this import exists
+import Contact from './components/Contact';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -16,18 +15,18 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-    return () => unsubscribe(); // cleanup
+    return () => unsubscribe();
   }, []);
 
   return (
     <Router>
       <div className="min-h-screen flex flex-col bg-gray-100">
-        {/* Navbar */}
+        {/* Navbar – ONLY public links: Home, Gallery, Contact Us */}
         <nav className="bg-gradient-to-r from-amber-800 via-orange-800 to-red-800 p-4 text-white shadow-xl relative overflow-hidden">
           <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           
-          <ul className="flex space-x-6 justify-between items-center max-w-6xl mx-auto relative z-10">
-            <li className="flex space-x-8">
+          <ul className="flex flex-wrap justify-center sm:justify-between items-center gap-6 sm:gap-8 max-w-7xl mx-auto relative z-10">
+            <li className="flex flex-wrap gap-6 sm:gap-8 justify-center">
               <Link 
                 to="/" 
                 className="relative hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full"
@@ -48,42 +47,18 @@ function App() {
               </Link>
             </li>
 
-            <li className="ml-auto flex items-center space-x-6">
-              {user ? (
-                <>
-                  <Link 
-                    to="/admin/dashboard" 
-                    className="relative hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full"
-                  >
-                    Admin Dashboard
-                  </Link>
-                  <button 
-                    onClick={() => auth.signOut()} 
-                    className="relative hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full cursor-pointer"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <Link 
-                  to="/admin/login" 
-                  className="relative hover:text-amber-200 transition-all duration-300 ease-in-out hover:scale-110 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-amber-300 after:transition-all after:duration-300 hover:after:w-full"
-                >
-                  Admin Login
-                </Link>
-              )}
-            </li>
+            {/* No admin link here at all – removed completely */}
           </ul>
         </nav>
 
-        {/* Main content – grows to fill space */}
+        {/* Main content */}
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/gallery" element={<Gallery />} />
-            <Route path="/contact" element={<Contact />} />  {/* ← Added Contact route */}
+            <Route path="/contact" element={<Contact />} />
             
-            {/* Protect admin routes */}
+            {/* Admin routes still exist (accessible via direct URL), but no link in navbar */}
             <Route 
               path="/admin/login" 
               element={!user ? <Login /> : <Navigate to="/admin/dashboard" replace />} 
@@ -101,9 +76,6 @@ function App() {
             } />
           </Routes>
         </main>
-
-        {/* Footer appears on every page */}
-        <Footer />
       </div>
     </Router>
   );

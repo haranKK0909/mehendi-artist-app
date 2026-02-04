@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
+import Footer from './Footer'; // Adjust path if your Footer is in a different location
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-100 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-white to-orange-100 relative overflow-hidden">
       {/* Subtle Henna-inspired background elements */}
       <div className="absolute inset-0 opacity-[0.08] pointer-events-none">
         <div className="absolute top-[10%] left-[5%] w-28 sm:w-32 h-28 sm:h-32 border-2 border-amber-400/70 rounded-full animate-pulse"></div>
@@ -184,6 +185,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Footer - only on Home page */}
+      <Footer />
     </div>
   );
 }

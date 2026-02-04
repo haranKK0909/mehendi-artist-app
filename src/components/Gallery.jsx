@@ -1,29 +1,26 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useSearchParams } from 'react-router-dom'; // NEW: Add this import
-import BookingForm from './BookingForm'; // Import the BookingForm component
+import { useSearchParams } from 'react-router-dom';
+import BookingForm from './BookingForm';
+import Footer from './Footer'; // ← Add this import (adjust path if needed)
 
 export default function Gallery() {
-  const [designs, setDesigns] = useState([]); // Renamed from images for clarity
-  const [filterService, setFilterService] = useState(''); // Renamed from filterStyle for clarity
+  const [designs, setDesigns] = useState([]);
+  const [filterService, setFilterService] = useState('');
   const [sortBy, setSortBy] = useState('Newest Arrivals');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // For debugging
-  const [showFilters, setShowFilters] = useState(false); // Mobile toggle for sidebar
+  const [error, setError] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
 
-  // States for booking modal
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
-  // New states for image full-view modal
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  // NEW: Add this hook (reads URL params for pre-filtering)
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // NEW: Initial load from URL param (only if filter not yet set)
   useEffect(() => {
     const serviceFromUrl = searchParams.get('service');
     if (serviceFromUrl && filterService === '') {
@@ -31,7 +28,6 @@ export default function Gallery() {
     }
   }, [searchParams]);
 
-  // Main fetch effect
   useEffect(() => {
     fetchDesigns();
   }, [filterService, sortBy]);
@@ -40,19 +36,13 @@ export default function Gallery() {
     setLoading(true);
     setError(null);
     try {
-      console.log('Fetching designs with filter:', filterService, 'sort:', sortBy); // Debug
+      console.log('Fetching designs with filter:', filterService, 'sort:', sortBy);
       let q = query(collection(db, 'images'), orderBy('createdAt', 'desc'));
 
-      // Apply service filter (string equality) - single block
       if (filterService) {
-        q = query(q, where('serviceType', '==', filterService)); // Updated field to 'serviceType'
-        console.log('Applied service filter:', filterService); // Debug
+        q = query(q, where('serviceType', '==', filterService));
+        console.log('Applied service filter:', filterService);
       }
-
-      // Optional: Chain tags filter if needed (uncomment to enable both)
-      // if (filterService) {
-      //   q = query(q, where('tags', 'array-contains', filterService));
-      // }
 
       const querySnapshot = await getDocs(q);
       let fetchedDesigns = querySnapshot.docs.map((doc) => ({
@@ -60,9 +50,8 @@ export default function Gallery() {
         ...doc.data()
       }));
 
-      console.log('Raw fetched designs:', fetchedDesigns.length); // Debug count
+      console.log('Raw fetched designs:', fetchedDesigns.length);
 
-      // Client-side sorting for price (improved to handle numbers/strings robustly)
       const parsePrice = (p) => typeof p === 'number' ? p : parseFloat((p || '').replace(/[^\d.]/g, '') || 0);
       if (sortBy === 'Price Low to High') {
         fetchedDesigns.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
@@ -72,7 +61,7 @@ export default function Gallery() {
 
       setDesigns(fetchedDesigns);
     } catch (err) {
-      console.error('Fetch error:', err); // Full log
+      console.error('Fetch error:', err);
       if (err.code === 'permission-denied') {
         setError('Permissions denied - check Firestore rules and index status.');
       } else if (err.code === 'failed-precondition') {
@@ -85,7 +74,6 @@ export default function Gallery() {
     }
   };
 
-  // NEW: Handle filter change with URL update
   const handleFilterChange = (e) => {
     const value = e.target.value;
     setFilterService(value);
@@ -96,7 +84,6 @@ export default function Gallery() {
     }
   };
 
-  // Open booking modal for a design
   const openBookingModal = (design) => {
     setSelectedDesign(design);
     setBookingModalOpen(true);
@@ -107,7 +94,6 @@ export default function Gallery() {
     setSelectedDesign(null);
   };
 
-  // New: Open full-view image modal
   const openImageModal = (imageUrl) => {
     setSelectedImage(imageUrl);
     setImageModalOpen(true);
@@ -145,7 +131,7 @@ export default function Gallery() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-orange-50 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-amber-50 via-white to-orange-50 relative overflow-hidden">
       {/* Animated background henna patterns */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 border-2 border-amber-300 rounded-full animate-pulse"></div>
@@ -153,9 +139,9 @@ export default function Gallery() {
         <div className="absolute top-1/2 left-1/4 w-16 h-16 border-2 border-amber-200 rounded-full animate-ping"></div>
       </div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex-grow">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          {/* Header with subtle animation */}
+          {/* Header */}
           <div className="flex justify-between items-center mb-8 animate-fade-in-down">
             <h1 className="text-3xl lg:text-5xl font-bold bg-gradient-to-r from-amber-800 to-orange-600 bg-clip-text text-transparent drop-shadow-lg">
               Our Mehendi Gallery
@@ -163,7 +149,7 @@ export default function Gallery() {
             <div className="text-sm text-gray-600 opacity-0 animate-fade-in-up delay-500">Discover exquisite designs</div>
           </div>
 
-          {/* Mobile Filter Toggle Button */}
+          {/* Mobile Filter Toggle */}
           <button
             onClick={toggleFilters}
             className="md:hidden mb-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-md"
@@ -171,13 +157,12 @@ export default function Gallery() {
             {showFilters ? 'Hide' : 'Show'} Filters
           </button>
 
-          {/* Main Layout: Sidebar + Grid - Responsive Stack */}
+          {/* Filters + Grid */}
           <div className={`flex gap-8 ${showFilters ? 'md:flex-row flex-col' : 'md:flex-row flex-col'}`}>
-            {/* Left Sidebar: Filters with Home.jsx-inspired styling */}
+            {/* Sidebar Filters */}
             <div className={`w-full md:w-64 flex-shrink-0 bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl shadow-xl p-6 border border-amber-200 md:block ${showFilters ? 'block' : 'hidden'} animate-staggered-fade-in`} style={{ animationDelay: '0ms' }}>
               <h2 className="text-xl font-bold text-gray-900 mb-6 text-center animate-fade-in">Filter Designs</h2>
 
-              {/* Service Filter - Card-like styling (Updated options to match Home.jsx services) */}
               <div className="mb-6 bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 group">
                 <div className="flex items-center mb-3 group-hover:scale-105 transition-transform duration-300">
                   <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
@@ -185,12 +170,12 @@ export default function Gallery() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.414a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
                   </div>
-                  <label htmlFor="service-filter" className="block text-sm font-medium text-gray-700">Select Service</label> {/* Added htmlFor for accessibility */}
+                  <label htmlFor="service-filter" className="block text-sm font-medium text-gray-700">Select Service</label>
                 </div>
                 <select
-                  id="service-filter" // Added id for label association
-                  value={filterService} // Updated value
-                  onChange={handleFilterChange} // Updated to use handler
+                  id="service-filter"
+                  value={filterService}
+                  onChange={handleFilterChange}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 hover:shadow-md bg-white"
                 >
                   <option value="">All Services</option>
@@ -203,7 +188,6 @@ export default function Gallery() {
                 </select>
               </div>
 
-              {/* Sort By - Card-like styling */}
               <div className="bg-white rounded-xl shadow-md p-4 hover:shadow-lg transition-all duration-300 group">
                 <div className="flex items-center mb-3 group-hover:scale-105 transition-transform duration-300">
                   <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
@@ -225,7 +209,7 @@ export default function Gallery() {
               </div>
             </div>
 
-            {/* Grid with staggered animation - Full width on mobile */}
+            {/* Designs Grid */}
             <div className="flex-1 w-full">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {designs.length > 0 ? (
@@ -233,9 +217,8 @@ export default function Gallery() {
                     <div
                       key={design.id}
                       className="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 ease-out transform hover:-translate-y-2 hover:rotate-1 cursor-pointer animate-staggered-fade-in"
-                      style={{ animationDelay: `${index * 100}ms` }} // Staggered load
+                      style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      {/* Image with zoom hover - Now clickable for full view */}
                       <div
                         className="relative overflow-hidden cursor-zoom-in"
                         onClick={() => openImageModal(design.url)}
@@ -245,7 +228,6 @@ export default function Gallery() {
                           alt={design.title}
                           className="w-full h-48 sm:h-64 object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        {/* Top-right Icons: Modern floating badges */}
                         <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-2 group-hover:translate-y-0">
                           <button className="p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all duration-300 transform hover:scale-110">
                             <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,20 +235,17 @@ export default function Gallery() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                           </button>
-
                         </div>
                       </div>
 
-                      {/* Content with gradient accents - Compact on mobile */}
                       <div className="p-4 sm:p-6">
                         <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                           {design.title}
                         </h3>
                         <p className="text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2 leading-relaxed">{design.description}</p>
 
-                        {/* Tags with hover pop - Wrap on mobile (added optional chaining) */}
                         <div className="flex flex-wrap gap-1 sm:gap-2 mb-3 sm:mb-4">
-                          {design.tags?.map((tag, idx) => (  // Optional chaining to prevent crash if tags undefined
+                          {design.tags?.map((tag, idx) => (
                             <span
                               key={idx}
                               className="px-2 py-1 sm:px-3 sm:py-1 bg-gradient-to-r from-amber-100 to-orange-100 text-xs text-amber-800 rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-md cursor-pointer"
@@ -276,12 +255,10 @@ export default function Gallery() {
                           )) || []}
                         </div>
 
-                        {/* Price with shine effect - Updated with rupees symbol */}
                         <p className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse-slow">
                           ₹{design.price}
                         </p>
 
-                        {/* Call-to-action - Triggers booking modal */}
                         <button
                           onClick={() => openBookingModal(design)}
                           className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 sm:py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
@@ -307,7 +284,7 @@ export default function Gallery() {
         </div>
       </div>
 
-      {/* Booking Modal - Now renders BookingForm */}
+      {/* Modals */}
       {bookingModalOpen && (
         <BookingForm
           selectedDesign={selectedDesign}
@@ -315,11 +292,9 @@ export default function Gallery() {
         />
       )}
 
-      {/* New: Full-View Image Modal */}
       {imageModalOpen && (
         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4 animate-fade-in">
           <div className="relative w-full h-full flex items-center justify-center">
-            {/* Close button */}
             <button
               onClick={closeImageModal}
               className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-all duration-300 transform hover:scale-110"
@@ -329,7 +304,6 @@ export default function Gallery() {
               </svg>
             </button>
 
-            {/* Full image */}
             <img
               src={selectedImage}
               alt="Full view"
@@ -338,6 +312,9 @@ export default function Gallery() {
           </div>
         </div>
       )}
+
+      {/* Footer - only on Gallery page */}
+      <Footer />
     </div>
   );
 }
