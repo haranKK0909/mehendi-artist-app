@@ -1,5 +1,7 @@
 // src/components/Contact.jsx
 import { useState } from 'react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase'; // Make sure this path is correct
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -25,14 +27,16 @@ export default function Contact() {
     e.preventDefault();
     setStatus({ submitted: false, submitting: true, error: null });
 
-    // Here you can later integrate with EmailJS, Formspree, Firebase Functions, etc.
-    // For now we'll simulate a successful submission after 1.5 seconds
     try {
-      // Example: await sendEmail(formData); // your future API call
+      // Save to Firestore in 'inquiries' collection
+      await addDoc(collection(db, 'inquiries'), {
+        ...formData,
+        createdAt: serverTimestamp(), // automatic timestamp
+        status: 'new',               // for admin to track
+        read: false,
+      });
 
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
+      // Success
       setStatus({ submitted: true, submitting: false, error: null });
       setFormData({
         name: '',
@@ -42,6 +46,7 @@ export default function Contact() {
         message: '',
       });
     } catch (err) {
+      console.error('Error saving inquiry:', err);
       setStatus({
         submitted: false,
         submitting: false,
@@ -69,9 +74,8 @@ export default function Contact() {
           </p>
         </div>
 
-        {/* Contact Info Cards + Form */}
+        {/* Contact Info Cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
-          {/* Quick Contact Cards */}
           <div className="bg-white rounded-2xl shadow-lg p-6 text-center transform transition-all hover:-translate-y-2 hover:shadow-xl">
             <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
