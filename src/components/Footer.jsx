@@ -1,4 +1,4 @@
-// Footer.jsx
+// src/components/Footer.jsx
 import { Link } from 'react-router-dom';
 import { FaInstagram, FaFacebookF, FaWhatsapp, FaPhoneAlt, FaEnvelope, FaYoutube } from 'react-icons/fa';
 
@@ -24,16 +24,31 @@ export default function Footer() {
               Creating timeless henna art for your most precious moments — from bridal elegance to festive joy.
             </p>
             <div className="flex space-x-4">
-              <a href="https://www.instagram.com/_happy.happydayy_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" 
-                 className="text-orange-600 hover:text-orange-700 transition-colors">
+              <a 
+                href="https://www.instagram.com/_happy.happydayy_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-orange-600 hover:text-orange-700 transition-colors"
+                aria-label="Instagram profile"
+              >
                 <FaInstagram size={22} />
               </a>
-              <a href="https://l.instagram.com/?u=https%3A%2F%2Fyoutube.com%2F%40happy.happydayy%3Fsi%3DFaEzv1uWiMtASlRc%26fbclid%3DPAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQMMjU2MjgxMDQwNTU4AAGnbIxSkCIWLuI3_UqAQXxHP25Gl61QEewgmH4iU-Lj5M0V0iVU3BLJniWsrxw_aem_1ZniWQMGkofbg44fPNJkxQ&e=AT2W5X7VaqnQBw7OJyR1B6JHjjQhy614XMSs-nOwNekF47frhLxHYdgUpqgHcI_KN5R32YbJ6VKYHHDjSldZrVU_XX2tvXx80xvIoTVE6g" target="_blank" rel="noopener noreferrer"
-                 className="text-orange-600 hover:text-orange-700 transition-colors">
+              <a 
+                href="https://youtube.com/@happy.happydayy?si=FaEzv1uWiMtASlRc" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-orange-600 hover:text-orange-700 transition-colors"
+                aria-label="YouTube channel"
+              >
                 <FaYoutube size={22} />
               </a>
-              <a href="https://wa.me/916380599589" target="_blank" rel="noopener noreferrer"
-                 className="text-orange-600 hover:text-orange-700 transition-colors">
+              <a 
+                href="https://wa.me/916380599589" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-orange-600 hover:text-orange-700 transition-colors"
+                aria-label="WhatsApp chat"
+              >
                 <FaWhatsapp size={22} />
               </a>
             </div>
@@ -74,27 +89,66 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Get in Touch – now fully clickable and responsive */}
           <div>
             <h4 className="text-lg font-semibold text-amber-800 mb-5">Get in Touch</h4>
             <ul className="space-y-4 text-gray-700 text-sm">
-              <li className="flex items-center gap-3">
-                <FaPhoneAlt className="text-orange-600" />
-                <span>+91 63805 99589</span>
+              {/* Phone – opens dialer */}
+              <li>
+                <a 
+                  href="tel:+916380599589" 
+                  className="flex items-center gap-3 hover:text-orange-600 transition-colors group"
+                  aria-label="Call us"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FaPhoneAlt className="text-white" />
+                  </div>
+                  <span>+91 63805 99589</span>
+                </a>
               </li>
-              <li className="flex items-center gap-3">
-                <FaWhatsapp className="text-orange-600" />
-                <span>+91 63805 99589</span>
+
+              {/* WhatsApp – opens WhatsApp chat */}
+              <li>
+                <a 
+                  href="https://wa.me/916380599589" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 hover:text-orange-600 transition-colors group"
+                  aria-label="Message on WhatsApp"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FaWhatsapp className="text-white" />
+                  </div>
+                  <span>+91 63805 99589 (WhatsApp)</span>
+                </a>
               </li>
-              <li className="flex items-center gap-3">
-                <FaEnvelope className="text-orange-600" />
-                <span>hpydayy7@gmail.com</span>
+
+              {/* Email – opens email client */}
+              <li>
+                <a 
+                  href="mailto:hpydayy7@gmail.com" 
+                  className="flex items-center gap-3 hover:text-orange-600 transition-colors group"
+                  aria-label="Send email"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <FaEnvelope className="text-white" />
+                  </div>
+                  <span>hpydayy7@gmail.com</span>
+                </a>
               </li>
-              <li className="mt-4">
-                <p className="text-gray-600">
+
+              {/* Location – static text (no link) */}
+              <li className="mt-4 flex items-start gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <span className="text-gray-600">
                   Tiruppur, Tamil Nadu<br />
                   Available across major cities
-                </p>
+                </span>
               </li>
             </ul>
           </div>
