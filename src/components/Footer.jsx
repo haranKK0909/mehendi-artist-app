@@ -18,7 +18,7 @@ export default function Footer() {
           {/* Brand & About */}
           <div className="md:col-span-1">
             <h3 className="text-2xl font-bold bg-gradient-to-r from-amber-700 to-orange-600 bg-clip-text text-transparent mb-4">
-              Mehendi By Hari
+              Mehendi By Pavi
             </h3>
             <p className="text-gray-600 mb-6 leading-relaxed text-sm">
               Creating timeless henna art for your most precious moments — from bridal elegance to festive joy.
@@ -157,7 +157,7 @@ export default function Footer() {
         {/* Bottom Bar + Disclaimer */}
         <div className="pt-8 text-center text-sm text-gray-600">
           <p className="mb-3">
-            © {currentYear} Mehendi By Hari. All Rights Reserved.
+            © {currentYear} Mehendi By Pavi. All Rights Reserved.
           </p>
 
           <div className="max-w-3xl mx-auto text-gray-500 leading-relaxed text-xs md:text-sm">
