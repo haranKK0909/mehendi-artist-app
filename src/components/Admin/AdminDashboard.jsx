@@ -191,7 +191,9 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{b.designTitle}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-orange-600">₹{b.designPrice}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-orange-600">
+  ₹{String(b.designPrice || '').replace(/₹/g, '')}
+</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm">{b.contactNumber}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs rounded-full ${
@@ -268,7 +270,7 @@ export default function AdminDashboard() {
                 <p><strong>Name:</strong> {selectedBooking.name}</p>
                 <p><strong>Service:</strong> {getServiceType(selectedBooking.designTitle, selectedBooking.serviceType)}</p>
                 <p><strong>Design:</strong> {selectedBooking.designTitle}</p>
-                <p><strong>Price:</strong> ₹{selectedBooking.designPrice}</p>
+                <p><strong>Price:</strong> ₹{String(selectedBooking.designPrice || '').replace(/₹/g, '')}</p>
                 <p><strong>Contact:</strong> {selectedBooking.contactNumber}</p>
                 <p><strong>Email:</strong> {selectedBooking.email || 'N/A'}</p>
                 <p><strong>Address:</strong> {selectedBooking.address}</p>

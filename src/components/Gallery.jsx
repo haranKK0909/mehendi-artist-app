@@ -256,7 +256,7 @@ export default function Gallery() {
                         </div>
 
                         <p className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse-slow">
-                          ₹{design.price}
+                          {design.price}
                         </p>
 
                         <button
